@@ -1,0 +1,123 @@
+<!-- content_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ content.topic }} - AI Content Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">Content</li>
+            </ol>
+        </nav>
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-primary">{{ content.content_type }}</span>
+                    {% if content.published %}
+                    <span class="badge bg-success">Published</span>
+                    {% endif %}
+                </div>
+                <small class="text-muted">Generated {{ content.created_at|timesince }} ago</small>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title mb-3">{{ content.topic }}</h1>
+                
+                <div class="content-text mb-4">
+                    {{ content.content|linebreaks }}
+                </div>
+                
+                {% if content.published %}
+                <div class="alert alert-success">
+                    <strong>Published!</strong> This content has been approved and posted to Facebook.
+                    {% if content.published_url %}
+                    <a href="{{ content.published_url }}" target="_blank" class="btn btn-sm btn-outline-success ms-2">
+                        View on Facebook
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">Voting Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height: 25px;">
+                    {% with total=content.approved_count|add:content.rejected_count %}
+                    {% if total > 0 %}
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ content.approved_count|floatformat:0|default:'0' }}%;" 
+                         aria-valuenow="{{ content.approved_count }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                        {{ content.approved_count }} Approve
+                    </div>
+                    <div class="progress-bar bg-danger" role="progressbar" 
+                         style="width: {{ content.rejected_count|floatformat:0|default:'0' }}%;" 
+                         aria-valuenow="{{ content.rejected_count }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                        {{ content.rejected_count }} Reject
+                    </div>
+                    {% else %}
+                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%;">
+                        No votes yet
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                
+                {% if user.is_authenticated and not content.published %}
+                <form method="post" action="{% url 'vote_content' content_id=content.id %}" class="d-flex justify-content-between">
+                    {% csrf_token %}
+                    <button type="submit" name="vote" value="approve" 
+                            class="btn vote-btn {% if user_vote == 'approve' %}btn-success{% else %}btn-outline-success{% endif %}"
+                            {% if user_vote == 'approve' %}disabled{% endif %}>
+                        <i class="bi bi-hand-thumbs-up"></i> Approve
+                    </button>
+                    <button type="submit" name="vote" value="reject" 
+                            class="btn vote-btn {% if user_vote == 'reject' %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                            {% if user_vote == 'reject' %}disabled{% endif %}>
+                        <i class="bi bi-hand-thumbs-down"></i> Reject
+                    </button>
+                </form>
+                {% elif not user.is_authenticated %}
+                <div class="alert alert-info">
+                    <a href="{% url 'login' %}">Log in</a> to vote on this content.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">Content Metadata</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Content Type
+                        <span class="badge bg-primary">{{ content.content_type }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Word Count
+                        <span class="badge bg-secondary">{{ content.word_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        AI Model
+                        <span class="badge bg-info">{{ content.metadata.model }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Generated
+                        <span class="badge bg-light text-dark">{{ content.created_at|date:"M d, Y H:i" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!-- notifications.html (continued) -->
+{% extends "base.html" %}
+
+{% block title %}Notifications - AI Content Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Your Notifications</h1>
+            {% if notifications %}
+            <a href="?mark_read=true" class="btn btn-outline-secondary">Mark All as Read</a>
+            {% endif %}
+        </div>
+        
+        <div class="list-group">
+            {% for notification in notifications %}
+            <a href="{% url 'content_detail' content_id=notification.content.id %}" 
+               class="list-group-item list-group-item-action {% if not notification.read %}active{% endif %}">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">New Content: {{ notification.content.topic }}</h5>
+                    <small>{{ notification.created_at|timesince }} ago</small>
+                </div>
+                <p class="mb-1">A new {{ notification.content.content_type }} is available for voting.</p>
+                <small>Click to view and vote</small>
+            </a>
+            {% empty %}
+            <div class="alert alert-info">
+                You don't have any notifications at this time.
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-4">
+            <a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

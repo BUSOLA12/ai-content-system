@@ -1,0 +1,86 @@
+<!-- home.html -->
+{% extends "base.html" %}
+
+{% block title %}Home - AI Content Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1 class="mb-4">Recent AI-Generated Content</h1>
+        
+        <div class="row">
+            {% for content in contents %}
+            <div class="col-md-6">
+                <div class="card content-card h-100">
+                    <div class="card-header">
+                        <span class="badge bg-primary">{{ content.content_type }}</span>
+                        {% if content.published %}
+                        <span class="badge bg-success">Published</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ content.topic }}</h5>
+                        <p class="card-text">{{ content.content|truncatewords:30 }}</p>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Generated {{ content.created_at|timesince }} ago</small>
+                            <a href="{% url 'content_detail' content_id=content.id %}" class="btn btn-sm btn-outline-primary">Read & Vote</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No content has been generated yet. Check back soon!
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">How It Works</h5>
+            </div>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li>Our AI system monitors trending topics online</li>
+                    <li>It generates engaging content automatically</li>
+                    <li>Registered users vote on content quality</li>
+                    <li>Approved content is published to Facebook</li>
+                </ol>
+            </div>
+            <div class="card-footer bg-white">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Register to Vote</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Content Stats</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Content
+                        <span class="badge bg-primary rounded-pill">{{ contents.count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Published
+                        <span class="badge bg-success rounded-pill">{{ contents.filter(published=True).count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Awaiting Votes
+                        <span class="badge bg-warning rounded-pill">{{ contents.filter(published=False).count }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
