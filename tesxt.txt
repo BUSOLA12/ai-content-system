@@ -1,0 +1,78 @@
+from content_generator.models import GeneratedContent
+contents = GeneratedContent.objects.all()
+content_ids = [item.id for item in contents]
+content_id = content_ids[0]
+from content_generator.tasks import publish_content_to_facebook
+publish_content_to_facebook(content_id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+try:
+        content = GeneratedContent.objects.get(id=content_id)
+
+        if content.published:
+            return {"status": "skipped", "reason": "already_published"}
+
+        page_id = os.environ.get('FACEBOOK_PAGE_ID')
+        access_token = os.environ.get('FACEBOOK_ACCESS_TOKEN')
+        api_version = 'v22.0'
+
+        if content.content_type == 'article':
+
+            message = f"{content.topic}\n\n{content.content}..."
+            url = f"https://mydomain.com/content/{content.id}"
+
+            post_data = {
+                "message": message,
+                "link": url
+            }
+        else:
+
+            post_data = {
+                "message": content.content
+            }
+
+        endpoint = f"https://graph.facebook.com/{api_version}/{page_id}/feed"
+        params = {
+            "access_token": access_token,
+            **post_data
+        }
+
+        response = requests.post(endpoint, params=params)
+        result = response.json()
+
+        if response.status_code == 200 and 'id' in result:
+
+            content.published = True
+            content.published_url = f"https://facebook.com/{result['id']}"
+            content.save()
+
+            return {
+                "status": "success",
+                "post_id": result['id'],
+                "url": content.published_url
+            }
+
+        else:
+            logger.error(f"Facebook API error: {response.text}")
+            return {"status": "error", "api_response": response.text}
+    
+    except Exception as e:
+        logger.error(f"Error publishing to Facebook: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+

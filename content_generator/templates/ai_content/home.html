@@ -1,5 +1,5 @@
 <!-- home.html -->
-{% extends "base.html" %}
+{% extends "ai_content/base.html" %}
 
 {% block title %}Home - AI Content Generator{% endblock %}
 
@@ -72,11 +72,11 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Published
-                        <span class="badge bg-success rounded-pill">{{ contents.filter(published=True).count }}</span>
+                        <span class="badge bg-success rounded-pill">{{ published_count }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Awaiting Votes
-                        <span class="badge bg-warning rounded-pill">{{ contents.filter(published=False).count }}</span>
+                        <span class="badge bg-warning rounded-pill">{{ Not_publish }}</span>
                     </li>
                 </ul>
             </div>

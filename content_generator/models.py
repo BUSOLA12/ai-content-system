@@ -7,14 +7,16 @@ from django.dispatch import receiver
 
 class GeneratedContent(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    topic = models.CharField(max_length=50, default="article")
+    topic = models.CharField(max_length=50, default="technology")
     content = models.TextField()
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     approved_count = models.IntegerField(default=0)
     rejected_count = models.IntegerField(default=0)
-    published = models.BooleanField(default=True)
+    published = models.BooleanField(default=False)
     published_url = models.URLField(null=True, blank=True)
+    content_type = models.CharField(max_length=100, default="article")
+    
 
 
     def __str__(self):
@@ -87,5 +89,6 @@ class Vote(models.Model):
         if content.approved_count > content.rejected_count and content.approved_count >= 3:
 
             if not content.published:
+
                 from .tasks import publish_content_to_facebook
-                publish_content_to_facebook.delay(str(content.id))
+                publish_content_to_facebook(str(content.id))

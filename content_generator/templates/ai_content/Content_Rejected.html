@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* General Reset */
+        body, table, td, a {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            color: #333333;
+        }
+        body {
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            border-spacing: 0;
+            width: 100%;
+        }
+        td {
+            padding: 20px;
+        }
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            background-color: #ffffff;
+            margin: 0 auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* Header */
+        .email-header {
+            background-color: #007bff;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        /* Body */
+        .email-body {
+            padding: 20px;
+            line-height: 1.5;
+        }
+        /* Button */
+        .email-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        /* Footer */
+        .email-footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #666666;
+        }
+        /* Responsive */
+        @media (max-width: 600px) {
+            .email-header {
+                font-size: 20px;
+                padding: 15px;
+            }
+            .email-body {
+                padding: 15px;
+            }
+            .email-button {
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table class="email-container">
+        <tr>
+            <td class="email-header">
+                🎉 New Content Rejected!
+            </td>
+        </tr>
+        <tr>
+            <td class="email-body">
+                <p>Hi</p>
+                <p>We are pleased to inform you that the new content with the topic <strong>{{ content_topic }}</strong> has been Rejected. Please login to see why!</p>
+                <p>To view the content, Please login!</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="email-footer">
+                &copy; 2025 CCA. All rights reserved.
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

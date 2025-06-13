@@ -4,6 +4,9 @@ from django.views.decorators.http import require_POST
 from .models import GeneratedContent, Vote, Notification
 import json
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib import messages
+
 
 
 
@@ -12,7 +15,10 @@ from django.contrib.auth.forms import UserCreationForm
 def home(request):
 
     contents = GeneratedContent.objects.order_by('-created_at')[:10]
-    return render(request, 'ai_content/home.html', {'contents': contents})
+    published_count = GeneratedContent.objects.filter(published=True).count()
+    Not_publish = GeneratedContent.objects.filter(published=False).count()
+
+    return render(request, 'ai_content/home.html', {'contents': contents, 'published_count': published_count, 'Not_publish': Not_publish})
 
 @login_required
 def content_detail(request, content_id):
@@ -31,7 +37,7 @@ def content_detail(request, content_id):
 @login_required
 def notifications(request):
 
-    notifications = Notifications.objects.filter(user=request.user).oreder_by('-created_at')
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     if request.GET.get('mark_read'):
         notifications.update(read=True)
 
@@ -40,9 +46,14 @@ def notifications(request):
 @login_required
 def dashboard(request):
     user_votes = Vote.objects.filter(user=request.user).order_by('-created_at')
+    user_votes_article = user_votes.filter(content__content_type='article').count
+    user_votes_social_post = user_votes.filter(content__content_type='social_post').count
+    user_votes_video_script = user_votes.filter(content__content_type='video_script').count
+    user_votes_approve = Vote.objects.filter(vote="approve").count()
+    user_votes_rejected = Vote.objects.filter(vote="reject").count()
     unread_notifications = Notification.objects.filter(user=request.user, read=False).count()
 
-    return render(request, 'ai_content/dashboard.html', {'user_vote': user_votes, 'unread_notifications': unread_notifications})
+    return render(request, 'ai_content/dashboard.html', {'user_vote': user_votes, 'unread_notifications': unread_notifications, 'user_votes_approve': user_votes_approve, 'user_votes_rejected': user_votes_rejected, 'user_votes_article': user_votes_article, 'user_votes_social_post': user_votes_social_post, 'user_votes_video_script': user_votes_video_script})
 
 @login_required
 @require_POST
@@ -73,7 +84,7 @@ def register(request):
 
     else:
         form = UserCreationForm()
-    return render(request, 'ai_content/reqister.html', {'form': form})
+    return render(request, 'ai_content/register.html', {'form': form})
 @login_required
 @require_POST
 def vote_content(request, content_id):
@@ -103,6 +114,12 @@ def vote_content(request, content_id):
         )
 
     else:
-        message.success(request, f"Your vote has been recorded: {vote_type}")
+        messages.success(request, f"Your vote has been recorded: {vote_type}")
         return redirect('content_detail', content_id=content_id)
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def logout_view(request):
+    logout(request)  # This logs out the user
+    return redirect('home')

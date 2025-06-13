@@ -24,9 +24,14 @@ SECRET_KEY = "django-insecure-+v($%7xi5@8jc#w!4*hh@r@)ly1j*sbwiz*!=5=ya5_bl3$v_w
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+CSRF_TRUSTED_ORIGINS = [
+    'https://c92c-197-211-63-144.ngrok-free.app',  # 👈 Include full URL with https
+]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'c92c-197-211-63-144.ngrok-free.app']
 
-ALLOWED_HOSTS = []
 
+
+LOGIN_URL = '/login/'
 
 # Application definition
 
@@ -41,6 +46,7 @@ INSTALLED_APPS = [
     "accounts",
     'django_celery_results',
     'django_celery_beat',
+    'fcm_django',
 ]
 
 MIDDLEWARE = [
@@ -134,6 +140,18 @@ import os
 # CELERY_RESULT_SERIALIZER = 'json'
 # CELERY_TIMEZONE = 'UTC'
 
-CELERY_BROKER_URL = 'memory://'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'iyiolaolubusola@gmail.com'
+EMAIL_HOST_PASSWORD = 'dzto imnk ahst ltwv'
+DEFAULT_FROM_EMAIL = 'iyiolaolubusola@gmail.com'
+
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

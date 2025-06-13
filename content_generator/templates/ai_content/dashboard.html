@@ -1,5 +1,5 @@
 <!-- dashboard.html -->
-{% extends "base.html" %}
+{% extends "ai_content/base.html" %}
 
 {% block title %}Dashboard - AI Content Generator{% endblock %}
 
@@ -138,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Your Votes',
                 data: [
-                    {{ user_votes.filter(vote='approve').count }},
-                    {{ user_votes.filter(vote='reject').count }}
+                    {{ user_votes_approve }},
+                    {{ user_votes_rejected }}
                 ],
                 backgroundColor: [
                     'rgba(40, 167, 69, 0.7)',
@@ -175,9 +175,9 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Content Types Voted On',
                 data: [
-                    {{ user_votes.filter(content__content_type='article').count }},
-                    {{ user_votes.filter(content__content_type='social_post').count }},
-                    {{ user_votes.filter(content__content_type='video_script').count }}
+                    {{ user_votes_article }},
+                    {{ user_votes_social_post }},
+                    {{ user_votes_video_script }}
                 ],
                 backgroundColor: [
                     'rgba(13, 110, 253, 0.7)',

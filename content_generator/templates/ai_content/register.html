@@ -1,5 +1,5 @@
 <!-- register.html -->
-{% extends "base.html" %}
+{% extends "ai_content/base.html" %}
 
 {% block title %}Register - AI Content Generator{% endblock %}
 
@@ -12,6 +12,7 @@
             </div>
             <div class="card-body">
                 <form method="post">
+                    
                     {% csrf_token %}
                     
                     {% if form.errors %}

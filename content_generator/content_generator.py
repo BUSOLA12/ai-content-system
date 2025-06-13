@@ -2,6 +2,7 @@ import requests
 import json
 import os
 import logging
+from datetime import datetime
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -25,6 +26,8 @@ class ContentGenerator:
 
     def generate_content(self, topic, content_type="article", word_count=500):
 
+        logger.info(f"From generate_content method: {topic} and {content_type}")
+
         headers = {
             "Authorization": f"Bearer {self.together_api_key}",
             "Content-Type": "application/json"
@@ -32,18 +35,39 @@ class ContentGenerator:
 
         if content_type == "article":
 
-            prompt = f"""Write an engaging article about {topic}.
-            The article should be informative, well-structured, and around {word_count} words.
-            Include a catchy title, introduction, several key points with explanations, and a conclusion.
-            Keep the tone professional but accessible. 
-            """
+            prompt = f"""
+                        Write a well-structured, engaging, and informative article about {topic}, around {word_count} words.
+
+                        The article should include:
+                        - A catchy and relevant title that draws reader interest.
+                        - An introduction that clearly presents the topic and its importance.
+                        - Several key points, each with clear explanations and relevant examples or data to support them.
+                        - A concise conclusion that summarizes the main ideas and provides a closing thought or call to action.
+
+                        Use a professional yet accessible tone that is easy to read.
+                        Vary sentence length to maintain reader interest, mixing short and long sentences.
+                        Avoid repetition, unclear phrases, or awkward sentence structures.
+                        Ensure smooth transitions between paragraphs and ideas.
+                        Write in clear, concise language suitable for a broad audience.
+                        """
+
 
         elif content_type == "social_post":
 
-            prompt = f"""Write an engaging social media post about {topic}.
-            The post should be concise, use appropriate hashtags, and encourage engagement.
-            include a hook, key information, and a call to action.
-            """
+            prompt = f"""
+                        Write a highly engaging social media post about {topic}.
+
+                        The post should:
+                        - Start with a strong hook that grabs attention in the first line.
+                        - Clearly convey the main idea or key information in a concise and compelling way.
+                        - Use an informal, friendly tone suitable for platforms like Facebook or Instagram.
+                        - Include 3–5 relevant and trending hashtags placed naturally.
+                        - End with a call to action (e.g., comment, share, follow, click a link, etc.).
+                        - Keep the total length under 100–150 words.
+
+                        Focus on making it relatable and easy to read, with line breaks for better readability.
+                        Avoid sounding robotic or too promotional—make it feel like a real person is posting.
+                        """
 
         else:
 
@@ -60,6 +84,7 @@ class ContentGenerator:
         }
 
         response = requests.post(self.api_url, headers=headers, data=json.dumps(data))
+        # logger.info(f"response from generate content method: {response.json()["choices"][0]["text"]}")
 
         if response.status_code == 200:
             content = response.json()["choices"][0]["text"]
@@ -71,7 +96,7 @@ class ContentGenerator:
                 "metadata": {
                     "model":"Llama-4-Maverick-17B-128E-Instruct-FP8",
                     "word_count": len(content.split()),
-                    "generated_at": datetime.datetime.now().isoformat()
+                    "generated_at": datetime.now().isoformat()
                 }
             }
         

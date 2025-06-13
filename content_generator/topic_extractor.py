@@ -5,7 +5,7 @@ from collections import Counter
 
 class TopicExtractor:
     def __init__(self):
-        self.Vectorizer = TfidfVectorizer(
+        self.vectorizer = TfidfVectorizer(
             max_features=1000,
             stop_words='english',
             ngram_range=(1, 3)
@@ -22,7 +22,7 @@ class TopicExtractor:
 
         # Sum the importance scores across documents
         importance_score = np.asarray(tfidf_matrix.sum(axis=0)).flatten()
-        word_importance = {feature_names[i]: importance_score[i] for i in range(len(feature_names))}
+        word_importance = {features_name[i]: importance_score[i] for i in range(len(features_name))}
 
         #sort by importance
 

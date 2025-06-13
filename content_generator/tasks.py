@@ -6,6 +6,7 @@ import logging
 import json
 from .models import GeneratedContent, User, Notification
 from fcm_django.models import FCMDevice
+from datetime import datetime
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -24,38 +25,6 @@ logger = logging.getLogger(__name__)
 # def add(x, y):
 #     return x + y
 
-@shared_task
-def send_content_notifications(content_ids):
-
-    try:
-        for content_id in content_ids:
-            content = GeneratedContent.objects.get(id=content_id)
-
-            users = User.objects.filter(profile_reveive_notifications=True)
-
-            for user in users:
-
-                notification = Notification.objects.create(
-                    user=user,
-                    content=content
-                )
-
-                devices = FCMDevice.objects.filter(user=user)
-                if devices.exists():
-                    devices.send_message(
-                        title=f"New Content: {content.topic}",
-                        body=f"New {content.content_type} is available for voting",
-                        data={
-                            "content_id": str(content.id),
-                            "notification_id": str(notification.id),
-                            "type": "new_content"
-                        }
-                    )
-        
-        return {"status": "success", "notified_users": users.count()}
-    except Exception as e:
-        logger.error(f"Error sending notifications: {str(e)}")
-        return {"status": "error", "message": str(e)}
 
 
 @shared_task
@@ -66,22 +35,32 @@ def generate_content_task():
     try:
         workflow = ContentWorkflow()
         result = workflow.run_content_workflow()
+        logger.info(f"result: {result}")
 
 
         saved_contents = []
 
-        for content_data in result.get("contents_generated"):
+        # content_data = result.get('contents_generated')
+        # logger.info(f"content_data: {content_data}")
+        # logger.info(f"topic: {content_data['topic']}")
+        # logger.info(f"content_type: {content_data['content_type']}")
+        # logger.info(f"content: {content_data['content']}")
+        # logger.info(f"metadata: {content_data['metadata']}")
+
+        
+        for content_data in result.get('contents_generated'):
+            logger.info(f"content_data: {content_data}")
             content = GeneratedContent(
-                topic=content_data["topic"],
-                content_type=content_data["content_type"],
-                content=content_data["content"],
-                metadata=content_data["metadata"]
+                topic=content_data['topic'],
+                content_type=content_data['content_type'],
+                content=content_data['content'],
+                metadata=content_data['metadata']
             )
             content.save()
             saved_contents.append(str(content.id))
 
 
-        send_content_notifications.delay(saved_contents)
+        # send_content_notifications.delay(saved_contents)
 
         logger.info(f"Content generation completed. Generated {len(saved_contents)} pieces of content")
         return {
@@ -94,70 +73,60 @@ def generate_content_task():
         return {"status": "error", "message": str(e)}
 
 @shared_task
-
 def publish_content_to_facebook(content_id):
-
     import requests
     import os
 
     try:
         content = GeneratedContent.objects.get(id=content_id)
-
         if content.published:
             return {"status": "skipped", "reason": "already_published"}
 
-        page_id = os.environ.get('FACEBOOK_PAGE_ID')
-        access_token = os.environ.get('FACEBOOK_ACCESS_TOKEN')
+        page_id = os.environ['FACEBOOK_PAGE_ID']
+        logger.info(f"page_id: {page_id}")
+        page_access_token = os.environ['FACEBOOK_PAGE_TOKEN']
+        logger.info(f"page_access_token: {page_access_token}")
         api_version = 'v22.0'
 
+        # Prepare post data
         if content.content_type == 'article':
-
-            message = f"{content.topic}\n\n{content.content[:200]}..."
-            url = f"https://mydomain.com/content/{content.id}"
-
-            post_data = {
+            message = f"{content.topic}\n\n{content.content}..."
+            link = f"https://mydomain.com/content/{content.id}"
+            post_data = {"message": message, "link": link}
+            logger.info(f"post_data: {post_data}")
+            payload = {
                 "message": message,
-                "link": url
-            }
+                # "link": link,
+                "access_token": page_access_token
+                }
         else:
-
-            post_data = {
-                "message": content.content
+            payload = {
+                "message": content.content,
+                "access_token": page_access_token
             }
-
+        logger.info(f"payload: {payload}")
+        # Post to Facebook
         endpoint = f"https://graph.facebook.com/{api_version}/{page_id}/feed"
-        params = {
-            "access_token": access_token,
-            **post_data
-        }
+        
+        response = requests.post(endpoint, data=payload)
+        logger.info(f"response.status_code: {response.status_code} and {response.text}")
 
-        response = requests.post(endpoint, params=params)
         result = response.json()
+        logger.info(f"response.status_code: {response.status_code} and {response.text}")
 
+        # Handle response
         if response.status_code == 200 and 'id' in result:
-
             content.published = True
             content.published_url = f"https://facebook.com/{result['id']}"
             content.save()
+            return {"status": "success", "post_id": result['id'], "url": content.published_url}
 
-            return {
-                "status": "success",
-                "post_id": result['id'],
-                "url": content.published_url
-            }
+        return {"status": "error", "api_response": response.text}
 
-        else:
-            logger.error(f"Facebook API error: {response.text}")
-            return {"status": "error", "api_response": response.text}
-    
+    except GeneratedContent.DoesNotExist:
+        return {"status": "error", "message": "Content not found"}
     except Exception as e:
-        logger.error(f"Error publishing to Facebook: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 
-# def main():
-    
-#     generate_content_task()
 
-# if __name__ == "__main__":
-#     main()
